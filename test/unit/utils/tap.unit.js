@@ -1295,12 +1295,12 @@ describe('Ionic Tap', function() {
   });
 
   it('Should not isKeyboardElement on date and select on Android and iPad', function() {
+
     expect( ionic.tap.isKeyboardElement(null) ).toEqual(false);
 
     ionic.Platform.setPlatform('android');
 
-    var ele = document.createElement('input');
-    ele.type = 'date';
+    var ele = { type:'date'};
     expect( ionic.tap.isKeyboardElement(ele) ).toEqual(false);
 
     ele.type = 'datetime-local';
@@ -1315,13 +1315,13 @@ describe('Ionic Tap', function() {
     ele.type = 'time';
     expect( ionic.tap.isKeyboardElement(ele) ).toEqual(false);
 
-    ele = document.createElement('select');
+    ele = {};
     expect ( ionic.tap.isKeyboardElement(ele)).toEqual(false);
 
     ionic.Platform.setPlatform('ios');
     ionic.Platform.ua = 'iPad';
 
-    ele = document.createElement('input');
+    ele = {};
     ele.type = 'date';
     expect( ionic.tap.isKeyboardElement(ele) ).toEqual(false);
 
@@ -1337,7 +1337,7 @@ describe('Ionic Tap', function() {
     ele.type = 'time';
     expect( ionic.tap.isKeyboardElement(ele) ).toEqual(false);
 
-    ele = document.createElement('select');
+    ele = {};
     expect ( ionic.tap.isKeyboardElement(ele)).toEqual(false);
   });
 

@@ -231,10 +231,9 @@ describe('Ionic History', function() {
     currentView = ionicHistory.currentView();
     backView = ionicHistory.backView();
     forwardView = ionicHistory.forwardView();
-    expect(currentView.backViewId).toEqual(tab1view1Reg.viewId);
+    expect(currentView.backViewId).toEqual(null);
     expect(currentView.forwardViewId).toEqual(null);
-    expect(backView.viewId).toEqual(tab1view1Reg.viewId);
-    expect(backView.forwardViewId).toEqual(currentView.viewId);
+    expect(backView).toEqual(null);
 
     expect(ionicHistory.viewHistory().histories.root.cursor).toEqual(2);
     expect(ionicHistory.viewHistory().histories.root.stack.length).toEqual(3);
@@ -689,7 +688,7 @@ describe('Ionic History', function() {
     expect(registerData.action).toEqual('moveBack');
     expect(registerData.direction).toEqual('swap');
     currentView = ionicHistory.currentView();
-    expect(currentView.backViewId).toEqual(tab1view2ViewId);
+    expect(currentView.backViewId).toEqual(null);
     expect(currentView.forwardViewId).toEqual(null);
 
     // should be remembered at the tab 1 view 2
@@ -1326,6 +1325,37 @@ describe('Ionic History', function() {
 
     rootScope.$broadcast("$ionicView.afterEnter", { title: 'New Title' });
     expect($document[0].title).toEqual('New Title');
+  }));
+
+  it('should remove the previous view completely', inject(function($state) {
+    $state.go('home');
+    rootScope.$apply();
+    var view1Scope = {};
+    var rsp = ionicHistory.register(view1Scope, false);
+
+    $state.go('about');
+    rootScope.$apply();
+    rsp = ionicHistory.register({}, false);
+
+    $state.go('contact');
+    rootScope.$apply();
+    rsp = ionicHistory.register({}, false);
+
+    var currentView = ionicHistory.currentView();
+    var backView = ionicHistory.backView();
+    expect(currentView.url).toEqual('/contact');
+    expect(backView.url).toEqual('/about');
+    expect(backView.viewId).toEqual(currentView.backViewId);
+
+    ionicHistory.removeBackView();
+
+    currentView = ionicHistory.currentView();
+    backView = ionicHistory.backView();
+    expect(backView.url).toEqual('/');
+    expect(backView.stateName).toEqual('home');
+    expect(currentView.url).toEqual('/contact');
+    expect(currentView.backViewId).toEqual(backView.viewId);
+
   }));
 
 });

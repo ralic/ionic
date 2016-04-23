@@ -12,30 +12,61 @@ describe('Scroll View', function() {
     });
   });
 
-  it('Should bind to event listeners', function() {
-    spyOn(sc,'addEventListener');
-    spyOn(document,'addEventListener');
+  it('Should be frozen after calling freeze', function(){
     var sv = new ionic.views.ScrollNative({
       el: sc
     });
-
-    expect(document.addEventListener).toHaveBeenCalled();
-    expect(document.addEventListener.mostRecentCall.args[0]).toBe('resetScrollView');
-    expect(sc.addEventListener).toHaveBeenCalled();
-    expect(sc.addEventListener.callCount).toBe(2);
-    expect(sc.addEventListener.mostRecentCall.args[0]).toBe('scrollChildIntoView');
+    sv.freeze(true);
+    expect(sv.__frozen).toEqual(true);
+    sv.freeze(false);
+    expect(sv.__frozen).toEqual(false);
   });
 
-  it('Should remove event listeners on cleanup', function() {
-    spyOn(sc,'removeEventListener');
+  it('Should be frozen shut after calling freezeShut', function(){
     var sv = new ionic.views.ScrollNative({
       el: sc
     });
-    sv.__cleanup();
-
-    expect(sc.removeEventListener).toHaveBeenCalled();
-    expect(sc.removeEventListener.callCount).toBe(4);
-    expect(sc.removeEventListener.mostRecentCall.args[0]).toBe('resetScrollView');
+    sv.freezeShut(true);
+    expect(sv.__frozenShut).toEqual(true);
+    sv.freezeShut(false);
+    expect(sv.__frozenShut).toEqual(false);
   });
 
+  it('Should shut down event completely when view is frozen shut', function(){
+    var sv = new ionic.views.ScrollNative({
+      el: sc
+    });
+    sv.freezeShut(true);
+
+    var mockEvent = {
+      preventDefault: jasmine.createSpy(),
+      stopPropagation: jasmine.createSpy()
+    };
+
+    var result = sv.handleTouchMove(mockEvent);
+    expect(result).toEqual(false);
+    expect(mockEvent.preventDefault).toHaveBeenCalled();
+    expect(mockEvent.stopPropagation).toHaveBeenCalled();
+    expect(mockEvent.preventDefault.callCount).toEqual(1);
+    expect(mockEvent.stopPropagation.callCount).toEqual(1);
+  });
+
+  it('Should prevent default on event when view is frozen', function(){
+    var sv = new ionic.views.ScrollNative({
+      el: sc
+    });
+    sv.freeze(true);
+
+    var mockEvent = {
+      preventDefault: jasmine.createSpy(),
+      stopPropagation: jasmine.createSpy()
+    };
+
+    var result = sv.handleTouchMove(mockEvent);
+    expect(result).toEqual(false);
+    expect(mockEvent.preventDefault).toHaveBeenCalled();
+    expect(mockEvent.stopPropagation).not.toHaveBeenCalled();
+    expect(mockEvent.preventDefault.callCount).toEqual(1);
+    expect(mockEvent.stopPropagation.callCount).toEqual(0);
+  });
 });

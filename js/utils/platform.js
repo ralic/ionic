@@ -10,6 +10,8 @@
   var IOS = 'ios';
   var ANDROID = 'android';
   var WINDOWS_PHONE = 'windowsphone';
+  var EDGE = 'edge';
+  var CROSSWALK = 'crosswalk';
   var requestAnimationFrame = ionic.requestAnimationFrame;
 
   /**
@@ -74,6 +76,11 @@
      * @returns {string} What grade the current platform is.
      */
     grade: null,
+    /**
+     * @ngdoc property
+     * @name ionic.Platform#ua
+     * @returns {string} What User Agent is.
+     */
     ua: navigator.userAgent,
 
     /**
@@ -152,7 +159,7 @@
         self.platforms.push('webview');
         if (!(!window.cordova && !window.PhoneGap && !window.phonegap)) {
           self.platforms.push('cordova');
-        } else if (window.forge) {
+        } else if (typeof window.forge === 'object') {
           self.platforms.push('trigger');
         }
       } else {
@@ -192,7 +199,7 @@
      * @returns {boolean} Check if we are running within a WebView (such as Cordova).
      */
     isWebView: function() {
-      return !(!window.cordova && !window.PhoneGap && !window.phonegap && !window.forge);
+      return !(!window.cordova && !window.PhoneGap && !window.phonegap && window.forge !== 'object');
     },
     /**
      * @ngdoc method
@@ -229,6 +236,18 @@
     isWindowsPhone: function() {
       return self.is(WINDOWS_PHONE);
     },
+    /**
+     * @ngdoc method
+     * @name ionic.Platform#isEdge
+     * @returns {boolean} Whether we are running on MS Edge/Windows 10 (inc. Phone)
+     */
+    isEdge: function() {
+      return self.is(EDGE);
+    },
+
+    isCrosswalk: function() {
+      return self.is(CROSSWALK);
+    },
 
     /**
      * @ngdoc method
@@ -249,12 +268,14 @@
         platformName = n.toLowerCase();
       } else if (getParameterByName('ionicplatform')) {
         platformName = getParameterByName('ionicplatform');
+      } else if (self.ua.indexOf('Edge') > -1) {
+        platformName = EDGE;
+      } else if (self.ua.indexOf('Windows Phone') > -1) {
+        platformName = WINDOWS_PHONE;
       } else if (self.ua.indexOf('Android') > 0) {
         platformName = ANDROID;
       } else if (/iPhone|iPad|iPod/.test(self.ua)) {
         platformName = IOS;
-      } else if (self.ua.indexOf('Windows Phone') > -1) {
-        platformName = WINDOWS_PHONE;
       } else {
         platformName = self.navigator.platform && navigator.platform.toLowerCase().split(' ')[0] || '';
       }
@@ -301,7 +322,12 @@
       }
     },
 
-    // Check if the platform is the one detected by cordova
+    /**
+     * @ngdoc method
+     * @name ionic.Platform#is
+     * @param {string} Platform name.
+     * @returns {boolean} Whether the platform name provided is detected.
+     */
     is: function(type) {
       type = type.toLowerCase();
       // check if it has an array of platforms
@@ -388,7 +414,21 @@
   var platformName = null, // just the name, like iOS or Android
   platformVersion = null, // a float of the major and minor, like 7.1
   readyCallbacks = [],
-  windowLoadListenderAttached;
+  windowLoadListenderAttached,
+  platformReadyTimer = 2000; // How long to wait for platform ready before emitting a warning
+
+  verifyPlatformReady();
+
+  // Warn the user if deviceready did not fire in a reasonable amount of time, and how to fix it.
+  function verifyPlatformReady() {
+    setTimeout(function() {
+      if(!self.isReady && self.isWebView()) {
+        console.warn('Possible issue: deviceready did not fire in a reasonable amount of time. ' +
+        'This can be caused by plugins in an inconsistent state. One possible solution: uninstall/remove all ' +
+        'plugins and reinstall them. Additionally, one or more plugins might be faulty or out of date.');
+      }
+    }, platformReadyTimer);
+  }
 
   // setup listeners to know when the device is ready to go
   function onWindowLoad() {
@@ -428,4 +468,4 @@
     });
   }
 
-})(this, document, ionic);
+})(window, document, ionic);
