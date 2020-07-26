@@ -60,7 +60,7 @@
     "q": "^1.0.1",
     "request": "^2.36.0",
     "sauce-connect-launcher": "^0.2.2",
-    "semver": "^2.2.1",
+    "semver": "^7.3.2",
     "through": "^2.3.4",
     "winston": "^0.7.2"
   },
